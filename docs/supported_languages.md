@@ -40,3 +40,4 @@ Backend Guard is architected to scale across all backend technologies.
 ### Flask (Python)
 - Detection: `Flask(__name__)` or `flask` in requirements.
 - Compatible with all universal architecture, database, security, and Python analyzers.
+

@@ -19,3 +19,4 @@ app.get('/unhandled-async', async (req, res) => {
 // Notice: No /health or /healthz endpoint (PROD-001)
 
 module.exports = app;
+

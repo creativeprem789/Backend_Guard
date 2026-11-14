@@ -78,3 +78,4 @@ When invoked with `--with-tools`, Backend Guard safely executes installed static
 - **mypy**: Python static type checking
 - **Bandit**: Python security scanner
 - **pytest**: Automated test discovery and health
+

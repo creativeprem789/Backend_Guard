@@ -48,3 +48,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Built-in JSON-RPC 2.0 Model Context Protocol (MCP) server over stdio for AI coding assistants.
   - GitHub Actions workflow generator and workflow annotation output (`::error`, `::warning`).
   - External tool runner wrappers for Ruff, ESLint, mypy, Bandit, and pytest.
+

@@ -81,3 +81,4 @@ mypy auditor
 - **Low False-Positive Tolerance**: Do not report heuristic hints as confirmed critical bugs. Clearly differentiate `confidence=high` from `confidence=low`.
 - **Actionable Guidance**: Every finding must include why it matters (`impact`), how to resolve it (`recommendation`), and an example fix (`suggested_fix`).
 - **Suppression Support**: All rules must honor `# backend-auditor: ignore <RULE_ID>` and `// backend-guard: ignore <RULE_ID>`.
+

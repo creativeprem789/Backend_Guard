@@ -24,3 +24,4 @@ A clear and concise description of the architectural or security challenge.
 ```python
 # Code that resolves the defect
 ```
+

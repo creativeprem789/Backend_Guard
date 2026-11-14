@@ -60,3 +60,4 @@ It detects:
 1. **Direct Presentation to Infrastructure Coupling (`ARCH-001`)**: Route handlers that import raw database connections or infrastructure drivers directly, bypassing domain abstraction.
 2. **Circular Dependencies (`ARCH-003`)**: Direct or multi-hop recursive import cycles across modules.
 3. **Domain Layer Leaks**: Domain entities importing outwards to infrastructure or delivery mechanisms.
+

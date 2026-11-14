@@ -134,3 +134,4 @@ This document provides a comprehensive reference for all rules implemented in Ba
 | `PY-TYPE-001` | LOW | MEDIUM | **Missing type annotations on public function**: Public service or router function lacking parameter or return type annotations. |
 | `TS-001` | LOW | HIGH | **Excessive use of unsafe 'any' type**: Explicit `any` annotations bypassing TypeScript type guarantees. |
 | `NEST-001` | HIGH | HIGH | **Service class missing @Injectable() decorator**: NestJS service lacking `@Injectable()` decorator. |
+

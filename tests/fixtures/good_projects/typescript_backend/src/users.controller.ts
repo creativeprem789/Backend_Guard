@@ -7,3 +7,4 @@ export class UsersController {
         return this.usersService.findAll();
     }
 }
+

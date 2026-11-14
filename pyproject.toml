@@ -46,6 +46,12 @@ dev = [
     "mypy>=1.10.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/creativeprem789/Backend_Guard"
+Repository = "https://github.com/creativeprem789/Backend_Guard.git"
+Documentation = "https://github.com/creativeprem789/Backend_Guard#readme"
+"Bug Tracker" = "https://github.com/creativeprem789/Backend_Guard/issues"
+
 [project.scripts]
 backend-guard = "auditor.cli:main"
 backend-auditor = "auditor.cli:main"
@@ -72,3 +78,4 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
+
