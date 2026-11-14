@@ -120,9 +120,12 @@ class Config:
 
         found_path: Optional[Path] = None
         for p in candidate_paths:
-            if p and p.is_file():
-                found_path = p
-                break
+            try:
+                if p and p.is_file():
+                    found_path = p
+                    break
+            except (OSError, PermissionError):
+                continue
 
         cfg = cls.default()
         if not found_path or tomllib is None:

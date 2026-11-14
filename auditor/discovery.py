@@ -83,9 +83,12 @@ class ProjectScanner:
 
         # Discover all eligible files
         for item in self.root_path.rglob("*"):
-            if not item.is_file():
-                continue
-            if self.is_ignored(item):
+            try:
+                if not item.is_file():
+                    continue
+                if self.is_ignored(item):
+                    continue
+            except (OSError, PermissionError):
                 continue
 
             files.append(item)
@@ -110,16 +113,16 @@ class ProjectScanner:
 
         project_name = self.root_path.name
         pkg_json = self.root_path / "package.json"
-        if pkg_json.is_file():
-            try:
+        try:
+            if pkg_json.is_file():
                 import json
 
                 with open(pkg_json, "r", encoding="utf-8") as f:
                     pj = json.load(f)
                     if "name" in pj and isinstance(pj["name"], str):
                         project_name = pj["name"]
-            except Exception:
-                pass
+        except Exception:
+            pass
 
         return ProjectInfo(
             root_path=self.root_path,
