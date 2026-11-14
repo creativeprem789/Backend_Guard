@@ -1,0 +1,403 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Backend Guard",
+          "semanticVersion": "1.0.0",
+          "informationUri": "https://github.com/backend-guard/backend-auditor",
+          "rules": [
+            {
+              "id": "SEC-001",
+              "name": "SEC_001",
+              "shortDescription": {
+                "text": "Hardcoded secret or credential detected"
+              },
+              "fullDescription": {
+                "text": "Potential Generic hardcoded API secret / key hardcoded in source code."
+              },
+              "help": {
+                "text": "Store secrets in environment variables or a dedicated secrets manager (e.g., Vault, AWS Secrets Manager).\n\nSuggested Fix:\nReplace hardcoded string with os.environ.get('SECRET_KEY') or a configuration loader.",
+                "markdown": "### Recommendation\nStore secrets in environment variables or a dedicated secrets manager (e.g., Vault, AWS Secrets Manager).\n\n```\nReplace hardcoded string with os.environ.get('SECRET_KEY') or a configuration loader.\n```"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "SEC-002",
+              "name": "SEC_002",
+              "shortDescription": {
+                "text": "SQL injection risk from string formatting"
+              },
+              "fullDescription": {
+                "text": "Database query 'query' was constructed via string interpolation/concatenation."
+              },
+              "help": {
+                "text": "Use parameterized queries or ORM query builders with bind variables.\n\nSuggested Fix:\nPass parameters as separate tuple/dict arguments: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
+                "markdown": "### Recommendation\nUse parameterized queries or ORM query builders with bind variables.\n\n```\nPass parameters as separate tuple/dict arguments: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))\n```"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CONF-002",
+              "name": "CONF_002",
+              "shortDescription": {
+                "text": "Production debug mode hardcoded to True"
+              },
+              "fullDescription": {
+                "text": "debug=True explicitly passed to framework call."
+              },
+              "help": {
+                "text": "Read debug configuration exclusively from environment variables with a default of False in production.\n\nSuggested Fix:\ndebug = os.getenv('DEBUG', 'false').lower() == 'true'",
+                "markdown": "### Recommendation\nRead debug configuration exclusively from environment variables with a default of False in production.\n\n```\ndebug = os.getenv('DEBUG', 'false').lower() == 'true'\n```"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "PY-ASYNC-001",
+              "name": "PY_ASYNC_001",
+              "shortDescription": {
+                "text": "Synchronous blocking call in async function"
+              },
+              "fullDescription": {
+                "text": "Blocking call 'time.sleep()' invoked inside async function 'get_user'. Use asyncio.sleep() instead."
+              },
+              "help": {
+                "text": "Replace blocking synchronous calls with their non-blocking asynchronous equivalents.\n\nSuggested Fix:\nReplace with await asyncio.sleep() or an async HTTP client like httpx.",
+                "markdown": "### Recommendation\nReplace blocking synchronous calls with their non-blocking asynchronous equivalents.\n\n```\nReplace with await asyncio.sleep() or an async HTTP client like httpx.\n```"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "FASTAPI-001",
+              "name": "FASTAPI_001",
+              "shortDescription": {
+                "text": "Direct raw SQL execution inside route endpoint"
+              },
+              "fullDescription": {
+                "text": "Raw SQL execution inside route 'get_user'."
+              },
+              "help": {
+                "text": "Move database queries into a dedicated repository or service class injected via Depends().\n\nSuggested Fix:\nCreate a UserRepository and inject it into the route handler via Depends(get_user_repo).",
+                "markdown": "### Recommendation\nMove database queries into a dedicated repository or service class injected via Depends().\n\n```\nCreate a UserRepository and inject it into the route handler via Depends(get_user_repo).\n```"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "ERR-001",
+              "name": "ERR_001",
+              "shortDescription": {
+                "text": "Silent exception swallowing"
+              },
+              "fullDescription": {
+                "text": "Exception caught and swallowed silently with 'pass'."
+              },
+              "help": {
+                "text": "Always log the exception with stack trace or re-raise it.\n\nSuggested Fix:\nLog the exception with logger.exception('Context description') or re-raise.",
+                "markdown": "### Recommendation\nAlways log the exception with stack trace or re-raise it.\n\n```\nLog the exception with logger.exception('Context description') or re-raise.\n```"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "DB-001",
+              "name": "DB_001",
+              "shortDescription": {
+                "text": "Potential N+1 query pattern detected in loop"
+              },
+              "fullDescription": {
+                "text": "Database query 'db.get()' executed inside loop iteration."
+              },
+              "help": {
+                "text": "Use eager loading (e.g., joinedload, selectinload) or fetch records in a single batched IN query.\n\nSuggested Fix:\nBatch query IDs using .filter(Model.id.in_(ids)) outside the loop or use eager loading.",
+                "markdown": "### Recommendation\nUse eager loading (e.g., joinedload, selectinload) or fetch records in a single batched IN query.\n\n```\nBatch query IDs using .filter(Model.id.in_(ids)) outside the loop or use eager loading.\n```"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "DEP-002",
+              "name": "DEP_002",
+              "shortDescription": {
+                "text": "Unpinned dependency version in production manifest"
+              },
+              "fullDescription": {
+                "text": "Dependency 'fastapi' is completely unpinned without version constraints."
+              },
+              "help": {
+                "text": "Pin dependencies to specific or compatible version ranges (e.g., package==1.2.3 or package~=1.2.0).\n\nSuggested Fix:\nSpecify exact or compatible version specifiers in the dependency manifest.",
+                "markdown": "### Recommendation\nPin dependencies to specific or compatible version ranges (e.g., package==1.2.3 or package~=1.2.0).\n\n```\nSpecify exact or compatible version specifiers in the dependency manifest.\n```"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "PROD-001",
+              "name": "PROD_001",
+              "shortDescription": {
+                "text": "Missing health check or liveness endpoint"
+              },
+              "fullDescription": {
+                "text": "No standard health probe endpoint (/health or /healthz) discovered in backend API."
+              },
+              "help": {
+                "text": "Expose a lightweight GET /health or /healthz route that checks database connectivity and returns 200 OK.\n\nSuggested Fix:\nAdd @app.get('/health') returning {'status': 'healthy'}.",
+                "markdown": "### Recommendation\nExpose a lightweight GET /health or /healthz route that checks database connectivity and returns 200 OK.\n\n```\nAdd @app.get('/health') returning {'status': 'healthy'}.\n```"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "SEC-001",
+          "level": "error",
+          "message": {
+            "text": "Hardcoded secret or credential detected: Potential Generic hardcoded API secret / key hardcoded in source code."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/main.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "SEC-002",
+          "level": "error",
+          "message": {
+            "text": "SQL injection risk from string formatting: Database query 'query' was constructed via string interpolation/concatenation."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/main.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 37,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CONF-002",
+          "level": "error",
+          "message": {
+            "text": "Production debug mode hardcoded to True: debug=True explicitly passed to framework call."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/main.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PY-ASYNC-001",
+          "level": "error",
+          "message": {
+            "text": "Synchronous blocking call in async function: Blocking call 'time.sleep()' invoked inside async function 'get_user'. Use asyncio.sleep() instead."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/main.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 33,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "FASTAPI-001",
+          "level": "error",
+          "message": {
+            "text": "Direct raw SQL execution inside route endpoint: Raw SQL execution inside route 'get_user'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/main.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 37,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "ERR-001",
+          "level": "error",
+          "message": {
+            "text": "Silent exception swallowing: Exception caught and swallowed silently with 'pass'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/main.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 43,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "DB-001",
+          "level": "error",
+          "message": {
+            "text": "Potential N+1 query pattern detected in loop: Database query 'db.get()' executed inside loop iteration."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/main.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 42,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "DEP-002",
+          "level": "warning",
+          "message": {
+            "text": "Unpinned dependency version in production manifest: Dependency 'fastapi' is completely unpinned without version constraints."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "DEP-002",
+          "level": "warning",
+          "message": {
+            "text": "Unpinned dependency version in production manifest: Dependency 'uvicorn' is completely unpinned without version constraints."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "DEP-002",
+          "level": "warning",
+          "message": {
+            "text": "Unpinned dependency version in production manifest: Dependency 'sqlalchemy==*' is completely unpinned without version constraints."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PROD-001",
+          "level": "note",
+          "message": {
+            "text": "Missing health check or liveness endpoint: No standard health probe endpoint (/health or /healthz) discovered in backend API."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

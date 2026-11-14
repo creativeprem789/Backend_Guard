@@ -1,0 +1,7 @@
+{
+  "name": "bad-express-backend",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "*"
+  }
+}
