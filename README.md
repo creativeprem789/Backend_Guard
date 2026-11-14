@@ -122,7 +122,12 @@ Backend Guard employs a **language-independent core engine** coupled with specia
 
 ## 📦 Installation
 
-### Option 1: Install from GitHub
+### Option 1: Install from PyPI (Recommended)
+```bash
+pip install backend-guard
+```
+
+### Option 2: Install from GitHub (Development)
 ```bash
 git clone https://github.com/creativeprem789/Backend_Guard.git
 cd Backend_Guard/backend-auditor
