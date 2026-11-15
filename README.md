@@ -21,6 +21,7 @@
 [Rule Reference](#-rule-catalog) •
 [AI & MCP Server](#-ai-coding-assistant-integration-mcp) •
 [Configuration](#-configuration) •
+[Limitations](#-current-limitations) •
 [Documentation](#-documentation)
 
 </div>
@@ -504,12 +505,21 @@ jobs:
 
       - name: Install Backend Guard
         run: |
-          pip install git+https://github.com/creativeprem789/Backend_Guard.git#subdirectory=backend-auditor
+          pip install backend-guard
 
       - name: Run Backend Guard Audit
         run: |
           backend-guard audit . --fail-on high --format github
 ```
+
+---
+
+## ⚠️ Current Limitations
+
+- **Static analysis only**: Evaluates source code structure without executing services; does not measure live runtime latencies, load spikes, or memory profiles.
+- **Dynamic metaprogramming**: Highly dynamic reflection, runtime `eval()`, or indirect string-based `getattr()` lookups may bypass static AST traversal.
+- **Ecosystem coverage (v1.0)**: Production-ready for Python and JavaScript/TypeScript (FastAPI, Express, NestJS, Django, Flask). Go, Java (Spring), and Rust are planned for upcoming releases.
+- **Not a dynamic penetration tool**: Focuses on backend architecture, data flow, async safety, and common code vulnerabilities, but is not a substitute for live DAST or infrastructure pen-testing.
 
 ---
 
