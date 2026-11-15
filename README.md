@@ -216,6 +216,8 @@ To audit any existing backend codebase, simply point `backend-guard` to your pro
 backend-guard audit /path/to/my-project
 ```
 
+> 🔍 **Real-World Case Study**: Check out our live audit on [GPT Researcher (18k+ ⭐)](GPT_RESEARCHER_AUDIT_REPORT.md) to see how Backend Guard uncovered critical RCE risks, async event-loop blocking, and cross-agent state leakage in an autonomous AI backend.
+
 ### Sample Terminal Output
 
 ```text
