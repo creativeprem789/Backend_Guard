@@ -49,6 +49,7 @@
   def __init__(self, headers: dict = {}):
       self.headers = headers
 
+
   # Use defensive sentinel:
   def __init__(self, headers: Optional[dict] = None):
       self.headers = headers if headers is not None else {}

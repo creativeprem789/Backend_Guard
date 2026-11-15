@@ -7,4 +7,3 @@ for modern backend systems.
 __version__ = "1.0.0"
 __tool_name__ = "backend-guard"
 __project_name__ = "Universal Backend Auditor"
-

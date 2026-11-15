@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Any, Dict
+
+logger = logging.getLogger(__name__)
 
 PARSER_SCRIPT = Path(__file__).parent / "js_ast_parser.js"
 
@@ -25,8 +28,8 @@ def parse_js_file(file_path: Path) -> Dict[str, Any]:
             )
             if res.returncode == 0 and res.stdout.strip():
                 return json.loads(res.stdout)
-        except Exception:
-            pass
+        except (subprocess.SubprocessError, OSError, json.JSONDecodeError) as exc:
+            logger.debug("Node AST parser execution error on %s: %s", file_path, exc)
 
     # High-fidelity fallback parser in pure Python
     return _fallback_js_parser(file_path)
@@ -107,7 +110,7 @@ def _fallback_js_parser(file_path: Path) -> Dict[str, Any]:
             ):
                 result["expressErrorMiddleware"].append({"line": idx, "text": trimmed})
 
-    except Exception:
-        pass
+    except (OSError, UnicodeDecodeError) as exc:
+        logger.debug("Failed reading JS/TS source %s: %s", file_path, exc)
 
     return result

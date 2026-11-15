@@ -60,4 +60,3 @@ def test_technology_detection_dict():
     assert d["name"] == "FastAPI"
     assert d["confidence"] == "high"
     assert len(d["evidence"]) == 1
-

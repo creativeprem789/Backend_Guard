@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import List
 
 from auditor.core.severity import Category, Confidence, Severity
 from auditor.integrations.external_tools import ExternalToolRunner
 from auditor.models import Finding
+
+logger = logging.getLogger(__name__)
 
 
 class BanditIntegration(ExternalToolRunner):
@@ -53,6 +56,6 @@ class BanditIntegration(ExternalToolRunner):
                         code_snippet=res.get("code", ""),
                     )
                 )
-        except Exception:
-            pass
+        except (json.JSONDecodeError, KeyError, TypeError) as exc:
+            logger.debug("Failed parsing Bandit output: %s", exc)
         return findings

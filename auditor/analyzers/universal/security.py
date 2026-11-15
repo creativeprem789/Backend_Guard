@@ -307,8 +307,11 @@ class InsecureCorsRule(BaseRule):
             lines = context.get_lines(f)
             rel_file = context.get_relative_path(f)
             for idx, line in enumerate(lines, start=1):
-                clean_lower = line.lower()
-                # Python CORSMiddleware with allow_origins=["*"] or allow_origins=['*'] and allow_credentials=True
+                stripped = line.strip()
+                if stripped.startswith(("#", "//", "/*", "*")):
+                    continue
+                clean_lower = stripped.lower()
+                # Check Python CORSMiddleware
                 if (
                     "allow_origins" in clean_lower
                     and ("['*']" in clean_lower or '["*"]' in clean_lower)
@@ -318,23 +321,24 @@ class InsecureCorsRule(BaseRule):
                         self.create_finding(
                             file=rel_file,
                             line=idx,
-                            description="CORSMiddleware configured with allow_origins=['*'] and allow_credentials=True.",
-                            evidence=line.strip(),
+                            description="Insecure CORS: wildcard origins combined with allow_credentials=True.",
+                            evidence=stripped,
                         )
                     )
-                # Express cors({ origin: '*', credentials: true })
+                # Check Express cors({ origin: '*', credentials: true })
                 if (
-                    "cors(" in line
-                    and "origin" in line
-                    and "*" in line
-                    and "credentials: true" in line
+                    "cors(" in clean_lower
+                    and "origin" in clean_lower
+                    and "*" in clean_lower
+                    and "credentials" in clean_lower
+                    and "true" in clean_lower
                 ):
                     findings.append(
                         self.create_finding(
                             file=rel_file,
                             line=idx,
-                            description="Express cors() configured with origin '*' and credentials: true.",
-                            evidence=line.strip(),
+                            description="Insecure Express CORS: wildcard origin combined with credentials enabled.",
+                            evidence=stripped,
                         )
                     )
         return findings

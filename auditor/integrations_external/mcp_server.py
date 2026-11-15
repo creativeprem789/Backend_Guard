@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -12,6 +13,8 @@ from auditor.discovery import ProjectScanner
 from auditor.engine import AuditEngine
 from auditor.models import AuditResult
 from auditor.registry import RuleRegistry
+
+logger = logging.getLogger(__name__)
 
 
 class McpServer:
@@ -37,10 +40,14 @@ class McpServer:
             result = handler(params)
             return {"jsonrpc": "2.0", "id": req_id, "result": result}
         except Exception as exc:
+            logger.exception("Internal RPC error processing method %s: %s", method, exc)
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,
-                "error": {"code": -32603, "message": str(exc)},
+                "error": {
+                    "code": -32603,
+                    "message": "Internal MCP server error while processing request",
+                },
             }
 
     def rpc_detect_backend_stack(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -113,8 +120,8 @@ class McpServer:
                 response = self.handle_request(request)
                 sys.stdout.write(json.dumps(response) + "\n")
                 sys.stdout.flush()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.error("Failed processing JSON-RPC line: %s", exc)
 
 
 if __name__ == "__main__":

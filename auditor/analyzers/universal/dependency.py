@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import List
 
@@ -11,6 +12,8 @@ from auditor.core.rule import BaseRule, RuleMetadata
 from auditor.core.severity import Category, Confidence, Severity
 from auditor.models import Finding
 from auditor.registry import register_analyzer, register_rule
+
+logger = logging.getLogger(__name__)
 
 
 @register_rule
@@ -72,8 +75,8 @@ class UnpinnedDependencyRule(BaseRule):
                                             evidence=f'"{pkg}": "{ver}"',
                                         )
                                     )
-                except Exception:
-                    pass
+                except (json.JSONDecodeError, OSError) as exc:
+                    logger.debug("Failed parsing package.json at %s: %s", rel_file, exc)
         return findings
 
 

@@ -53,4 +53,3 @@ def test_file_level_suppression():
     ]
     idx.scan_file("legacy.py", lines)
     assert idx.is_suppressed("legacy.py", 10, "ANY-RULE")
-

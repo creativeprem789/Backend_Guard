@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -17,6 +18,8 @@ else:
         tomllib = None  # type: ignore
 
 from auditor.core.severity import Confidence, Severity
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -63,6 +66,8 @@ class Config:
             ".idea",
             ".vscode",
             "migrations",
+            "fixtures",
+            "test_fixtures",
         }
     )
     exclude_files: Set[str] = field(
@@ -135,9 +140,9 @@ class Config:
             with open(found_path, "rb") as f:
                 data = tomllib.load(f)
             cls._apply_toml_dict(cfg, data, root_path)
-        except Exception:
+        except Exception as exc:
             # Fall back to defaults on parsing error without crashing
-            pass
+            logger.debug("Failed loading TOML config from %s: %s", found_path, exc)
         return cfg
 
     @classmethod

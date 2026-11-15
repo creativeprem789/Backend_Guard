@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 function analyzeFile(filePath) {
-    const code = fs.readFileSync(filePath, 'utf-8');
+    const code = fs.readFileSync(filePath, 'utf-8'); // backend-guard: ignore JS-001 -- CLI script helper, not a long-running web server
     const lines = code.split(/\r?\n/);
 
     const result = {

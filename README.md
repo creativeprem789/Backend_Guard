@@ -318,6 +318,7 @@ DUMMY_KEY = "test_key_1234567890"  # backend-auditor: ignore SEC-001 -- mock tes
 # Block suppression
 # backend-auditor: ignore-block ARCH-001
 from app.infra import raw_db
+
 raw_db.ping()
 # backend-auditor: end-ignore-block
 

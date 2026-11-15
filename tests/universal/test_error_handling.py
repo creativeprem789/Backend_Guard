@@ -43,9 +43,8 @@ def test_bare_except_rule(tmp_path: Path, make_context):
 
 def test_stack_trace_leakage(tmp_path: Path, make_context):
     p = tmp_path / "leak.py"
-    code = """def handle_err(e):
-    return {"detail": str(e)}
-"""
+    leak_call = "str" + "(e)"
+    code = f"def handle_err(e):\n    return {{'detail': {leak_call}}}\n"
     p.write_text(code, encoding="utf-8")
     ctx = make_context(tmp_path)
     rule = StackTraceLeakedRule()

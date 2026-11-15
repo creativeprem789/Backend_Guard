@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import fnmatch
+import json
+import logging
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 from auditor.config import Config
 from auditor.core.severity import Confidence
 from auditor.models import ProjectInfo, TechnologyDetection
+
+logger = logging.getLogger(__name__)
 
 LANGUAGE_EXTENSIONS: Dict[str, Set[str]] = {
     "python": {".py", ".pyw"},
@@ -31,25 +35,37 @@ class ProjectScanner:
         self.config = config
         self.gitignore_patterns: List[str] = self._load_gitignore()
 
+    def _safe_read_text(self, path: Path, max_chars: Optional[int] = None) -> str:
+        """Safely read text file with fallback, logging any access errors."""
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
+                return f.read(max_chars) if max_chars is not None else f.read()
+        except (OSError, UnicodeDecodeError) as exc:
+            logger.debug("Could not read %s: %s", path, exc)
+            return ""
+
     def _load_gitignore(self) -> List[str]:
         if not self.config.respect_gitignore:
             return []
         gi = self.root_path / ".gitignore"
         patterns: List[str] = []
         if gi.is_file():
-            try:
-                for line in gi.read_text(encoding="utf-8", errors="replace").splitlines():
-                    stripped = line.strip()
-                    if stripped and not stripped.startswith("#"):
-                        patterns.append(stripped)
-            except Exception:
-                pass
+            content = self._safe_read_text(gi)
+            for line in content.splitlines():
+                stripped = line.strip()
+                if stripped and not stripped.startswith("#"):
+                    patterns.append(stripped)
         return patterns
 
     def is_ignored(self, path: Path) -> bool:
         """Check if path is in exclude dirs, exclude files, or gitignore."""
-        # Check against exclude_dirs
-        for part in path.parts:
+        # Check against exclude_dirs relative to project root
+        try:
+            rel_parts = path.resolve().relative_to(self.root_path).parts
+        except ValueError:
+            rel_parts = path.parts
+
+        for part in rel_parts:
             if part in self.config.exclude_dirs:
                 return True
 
@@ -71,7 +87,7 @@ class ProjectScanner:
                     if fnmatch.fnmatch(rel, clean_pattern + "/*"):
                         return True
             except ValueError:
-                pass
+                return False
 
         return False
 
@@ -104,8 +120,8 @@ class ProjectScanner:
                 try:
                     with open(item, "rb") as f:
                         total_lines += sum(1 for _ in f)
-                except Exception:
-                    pass
+                except (OSError, PermissionError) as exc:
+                    logger.debug("Failed counting lines in %s: %s", item, exc)
 
         # Technology detection
         languages = self._detect_languages(files_by_lang, files)
@@ -115,14 +131,12 @@ class ProjectScanner:
         pkg_json = self.root_path / "package.json"
         try:
             if pkg_json.is_file():
-                import json
-
                 with open(pkg_json, "r", encoding="utf-8") as f:
                     pj = json.load(f)
                     if "name" in pj and isinstance(pj["name"], str):
                         project_name = pj["name"]
-        except Exception:
-            pass
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.debug("Failed reading package.json for project name: %s", exc)
 
         return ProjectInfo(
             root_path=self.root_path,
@@ -257,22 +271,11 @@ class ProjectScanner:
 
         for f in all_files:
             if f.name == "package.json":
-                try:
-                    package_json_content = f.read_text(encoding="utf-8", errors="replace").lower()
-                except Exception:
-                    pass
+                package_json_content = self._safe_read_text(f).lower()
             elif f.name in ("requirements.txt", "Pipfile"):
-                try:
-                    requirements_content += (
-                        "\n" + f.read_text(encoding="utf-8", errors="replace").lower()
-                    )
-                except Exception:
-                    pass
+                requirements_content += "\n" + self._safe_read_text(f).lower()
             elif f.name == "pyproject.toml":
-                try:
-                    pyproject_content = f.read_text(encoding="utf-8", errors="replace").lower()
-                except Exception:
-                    pass
+                pyproject_content = self._safe_read_text(f).lower()
 
         # FastAPI detection
         fastapi_evidence: List[str] = []
@@ -281,13 +284,10 @@ class ProjectScanner:
 
         for f in all_files:
             if f.suffix == ".py":
-                try:
-                    sample = f.read_text(encoding="utf-8", errors="replace")[:3000]
-                    if "import fastapi" in sample or "from fastapi import" in sample:
-                        fastapi_evidence.append(f"FastAPI import in {f.name}")
-                        break
-                except Exception:
-                    pass
+                sample = self._safe_read_text(f, max_chars=3000)
+                if "import fastapi" in sample or "from fastapi import" in sample:
+                    fastapi_evidence.append(f"FastAPI import in {f.name}")
+                    break
 
         if fastapi_evidence:
             frameworks["fastapi"] = TechnologyDetection(
@@ -306,13 +306,10 @@ class ProjectScanner:
 
         for f in all_files:
             if f.suffix == ".py":
-                try:
-                    sample = f.read_text(encoding="utf-8", errors="replace")[:2000]
-                    if "from django" in sample or "import django" in sample:
-                        django_evidence.append(f"Django import in {f.name}")
-                        break
-                except Exception:
-                    pass
+                sample = self._safe_read_text(f, max_chars=2000)
+                if "from django" in sample or "import django" in sample:
+                    django_evidence.append(f"Django import in {f.name}")
+                    break
 
         if django_evidence:
             frameworks["django"] = TechnologyDetection(
@@ -328,13 +325,10 @@ class ProjectScanner:
             flask_evidence.append("flask declared in dependencies")
         for f in all_files:
             if f.suffix == ".py":
-                try:
-                    sample = f.read_text(encoding="utf-8", errors="replace")[:2000]
-                    if "from flask import" in sample or "import flask" in sample:
-                        flask_evidence.append(f"Flask import in {f.name}")
-                        break
-                except Exception:
-                    pass
+                sample = self._safe_read_text(f, max_chars=2000)
+                if "from flask import" in sample or "import flask" in sample:
+                    flask_evidence.append(f"Flask import in {f.name}")
+                    break
         if flask_evidence:
             frameworks["flask"] = TechnologyDetection(
                 name="Flask",
@@ -349,18 +343,15 @@ class ProjectScanner:
             express_evidence.append("express in package.json")
         for f in all_files:
             if f.suffix in (".js", ".ts", ".mjs"):
-                try:
-                    sample = f.read_text(encoding="utf-8", errors="replace")[:2000]
-                    if (
-                        "require('express')" in sample
-                        or 'require("express")' in sample
-                        or "from 'express'" in sample
-                        or 'from "express"' in sample
-                    ):
-                        express_evidence.append(f"express import in {f.name}")
-                        break
-                except Exception:
-                    pass
+                sample = self._safe_read_text(f, max_chars=2000)
+                if (
+                    "require('express')" in sample
+                    or 'require("express")' in sample
+                    or "from 'express'" in sample
+                    or 'from "express"' in sample
+                ):
+                    express_evidence.append(f"express import in {f.name}")
+                    break
         if express_evidence:
             frameworks["express"] = TechnologyDetection(
                 name="Express",
@@ -387,21 +378,15 @@ class ProjectScanner:
         spring_evidence: List[str] = []
         for f in all_files:
             if f.name in ("pom.xml", "build.gradle", "build.gradle.kts"):
-                try:
-                    txt = f.read_text(encoding="utf-8", errors="replace")
-                    if "spring-boot" in txt:
-                        spring_evidence.append(f"spring-boot in {f.name}")
-                        break
-                except Exception:
-                    pass
+                txt = self._safe_read_text(f)
+                if "spring-boot" in txt:
+                    spring_evidence.append(f"spring-boot in {f.name}")
+                    break
             elif f.suffix == ".java":
-                try:
-                    txt = f.read_text(encoding="utf-8", errors="replace")[:2000]
-                    if "SpringBootApplication" in txt:
-                        spring_evidence.append(f"@SpringBootApplication in {f.name}")
-                        break
-                except Exception:
-                    pass
+                txt = self._safe_read_text(f, max_chars=2000)
+                if "SpringBootApplication" in txt:
+                    spring_evidence.append(f"@SpringBootApplication in {f.name}")
+                    break
         if spring_evidence:
             frameworks["spring"] = TechnologyDetection(
                 name="Spring Boot",
@@ -416,12 +401,9 @@ class ProjectScanner:
             laravel_evidence.append("artisan CLI present")
         for f in all_files:
             if f.name == "composer.json":
-                try:
-                    txt = f.read_text(encoding="utf-8", errors="replace")
-                    if "laravel/framework" in txt:
-                        laravel_evidence.append("laravel/framework in composer.json")
-                except Exception:
-                    pass
+                txt = self._safe_read_text(f)
+                if "laravel/framework" in txt:
+                    laravel_evidence.append("laravel/framework in composer.json")
         if laravel_evidence:
             frameworks["laravel"] = TechnologyDetection(
                 name="Laravel",
