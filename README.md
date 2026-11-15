@@ -134,17 +134,55 @@ cd Backend_Guard/backend-auditor
 pip install -e .
 ```
 
-### Option 2: Install via pip (once published on PyPI)
-```bash
-pip install backend-auditor
-```
-
-After installation, both `backend-guard` and `backend-auditor` CLI commands are available globally.
+After installation, both `backend-guard` and `backend-auditor` CLI commands are available globally:
 
 ```bash
 backend-guard --version
 # Output: backend-guard 1.0.0
 ```
+
+---
+
+## 🛠️ Ways to Use Backend Guard
+
+You can use Backend Guard across your entire engineering workflow:
+
+| Mode | Use Case | How to Run |
+|---|---|---|
+| **1. Terminal CLI** | Instant local audits with interactive ANSI cards and actionable code fixes | `backend-guard audit .` |
+| **2. AI Coding Agents (MCP)** | Real-time audit tools directly inside Cursor, Claude Desktop, Windsurf, Cline | `backend-guard mcp` |
+| **3. CI/CD & GitHub Actions** | Block pull requests on critical/high architecture and security regressions | `backend-guard audit . --fail-on high` |
+| **4. PR Documentation** | Generate GitHub-flavored Markdown or SARIF reports for code scanning | `backend-guard audit . --format markdown -o AUDIT.md` |
+
+---
+
+### 🤖 Using Backend Guard with AI Coding Agents (MCP)
+
+Backend Guard includes a native **Model Context Protocol (MCP)** server over `stdio`. AI coding tools like **Cursor**, **Claude Desktop**, **Windsurf**, **Cline**, and **Antigravity** can inspect your backend, execute audits, and fetch fix suggestions dynamically.
+
+#### Start Server CLI
+```bash
+backend-guard mcp
+```
+
+#### Configuration (`claude_desktop_config.json`, Cursor settings, or agent MCP config)
+```json
+{
+  "mcpServers": {
+    "backend-guard": {
+      "command": "backend-guard",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+#### Available MCP Capabilities:
+- `detect_backend_stack`: Inspects target codebase and returns detected frameworks, manifests, and file counts.
+- `audit_backend`: Runs the full audit engine and returns structured findings with rule IDs and severity.
+- `get_finding_details`: Fetches full impact, evidence, and remediation guidance for a specific finding.
+- `get_rule_information`: Returns rule documentation and architecture rationale.
+- `generate_fix_suggestion`: Returns concrete refactoring code snippets.
 
 ---
 
